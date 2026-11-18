@@ -1,0 +1,14 @@
+name: alert
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install requests
+      - run: python alert.py
+        env:
+          WEBHOOK: ${{ secrets.WEBHOOK }}

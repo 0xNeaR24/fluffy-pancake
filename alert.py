@@ -3,6 +3,8 @@ import os
 import requests
 
 WEBHOOK = os.environ["WEBHOOK"]
+TG_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+TG_CHAT = os.environ.get("TELEGRAM_CHAT_ID")
 AMBANG = 3.0  # persen perubahan yang memicu alert
 FILE = "harga.json"
 
@@ -18,6 +20,18 @@ KOIN = {
 
 def fmt(x):
     return f"${x:,.2f}" if x >= 1 else f"${x:,.4f}"
+
+
+def kirim(teks):
+    requests.post(WEBHOOK, json={"content": teks}, timeout=30)
+    if TG_TOKEN and TG_CHAT:
+        t = requests.post(
+            f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage",
+            json={"chat_id": TG_CHAT, "text": teks},
+            timeout=30,
+        )
+        if not t.ok:
+            print("Telegram gagal:", t.text)
 
 
 try:
@@ -58,8 +72,6 @@ with open(FILE, "w") as f:
     json.dump(dasar, f)
 
 if alert:
-    requests.post(WEBHOOK, json={"content": "\n".join(alert)})
+    kirim("\n".join(alert))
 elif manual:
-    requests.post(
-        WEBHOOK, json={"content": "Tes manual:\n" + "\n".join(ringkas)}
-    )
+    kirim("Tes manual:\n" + "\n".join(ringkas))
